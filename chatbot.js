@@ -1,9 +1,29 @@
 /* =============================================
-   TIMER PRO — Chatbot Logic
+   TIMER PRO — Chatbot Logic + Lead Collection
    ============================================= */
 
 (() => {
     'use strict';
+
+    // =============================================
+    // GOOGLE SHEETS WEBHOOK (Lead Storage)
+    // =============================================
+    // IMPORTANT: Replace with your actual Google Apps Script Web App URL
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec';
+    const SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const chatHistory = [];
+
+    // =============================================
+    // LEAD COLLECTION STATE
+    // =============================================
+    let leadFlow = {
+        active: false,
+        step: 0,  // 0 = not started, 1 = asked name, 2 = asked contact, 3 = asked interest
+        data: { name: '', phone: '', email: '', interest: '' }
+    };
+
+    // Stored leads (also saved to localStorage)
+    let collectedLeads = JSON.parse(localStorage.getItem('timerPro_leads') || '[]');
 
     // =============================================
     // ELEMENTS
@@ -81,7 +101,7 @@
             patterns: [
                 /(?:set|start|begin|run)\s*(?:a\s*)?(?:count\s*down|timer|cd)\s*(?:for\s*)?(\d+)\s*(h(?:ours?)?|m(?:in(?:utes?)?)?|s(?:ec(?:onds?)?)?)/i,
                 /count\s*down\s*(\d+)\s*(h(?:ours?)?|m(?:in(?:utes?)?)?|s(?:ec(?:onds?)?)?)/i,
-                /(\d+)\s*(h(?:ours?)?|m(?:in(?:utes?)?)?|s(?:ec(?:onds?)?)?)\s*(?:count\s*down|timer)/i
+                /(\d+)\s*(h(?:ours?)?|m(?:in(?:utes?)?)?|s(?:ec(?:onds?)?)?\s*(?:count\s*down|timer))/i
             ],
             action: (match) => {
                 const value = parseInt(match[1]);
@@ -187,10 +207,27 @@
             patterns: [/(?:go\s*to|switch|show|open)\s*(?:the\s*)?(pomo(?:doro)?)/i],
             action: () => { switchMode('pomodoro'); return "Switched to Pomodoro mode."; }
         },
+        // =============================================
+        // LEAD COLLECTION TRIGGERS
+        // =============================================
+        {
+            patterns: [
+                /(?:contact|lien\s*he|dang\s*ky|register|sign\s*up|subscribe)/i,
+                /(?:de\s*lai|leave)\s*(?:thong\s*tin|info|contact|email)/i,
+                /(?:i\s*want\s*to|toi\s*muon)\s*(?:try|thu|register|dang\s*ky)/i,
+                /(?:trial|free\s*trial|demo|dung\s*thu)/i,
+                /(?:pricing|gia|bao\s*gia|price)/i,
+                /(?:mua|buy|purchase|order|dat\s*hang)/i
+            ],
+            action: () => {
+                startLeadFlow();
+                return "Great choice! I'd love to help you get started.\n\nCould you please tell me your <strong>name</strong>?";
+            }
+        },
         {
             patterns: [/what\s*(?:can\s*you\s*do|are\s*your\s*(?:features|commands|capabilities))/i, /help/i, /commands/i],
             action: () => {
-                return `Here's what I can do:\n\n<strong>Stopwatch:</strong> "start stopwatch", "stop", "reset stopwatch", "lap"\n\n<strong>Countdown:</strong> "set countdown 10 minutes", "countdown 30 seconds", "stop timer"\n\n<strong>Pomodoro:</strong> "start pomodoro", "pause pomodoro", "skip", "reset pomodoro"\n\n<strong>Navigation:</strong> "switch to countdown", "go to stopwatch"\n\n<strong>Tips:</strong> "give me a productivity tip", "how to focus better"`;
+                return `Here's what I can do:\n\n<strong>Stopwatch:</strong> "start stopwatch", "stop", "reset stopwatch", "lap"\n\n<strong>Countdown:</strong> "set countdown 10 minutes", "countdown 30 seconds", "stop timer"\n\n<strong>Pomodoro:</strong> "start pomodoro", "pause pomodoro", "skip", "reset pomodoro"\n\n<strong>Navigation:</strong> "switch to countdown", "go to stopwatch"\n\n<strong>Tips:</strong> "give me a productivity tip"\n\n<strong>Contact:</strong> "register", "sign up", "contact" — to leave your info`;
             }
         },
         {
@@ -214,7 +251,7 @@
             }
         },
         {
-            patterns: [/hello|hi|hey|good\s*(morning|evening|afternoon)|sup|yo/i],
+            patterns: [/hello|hi|hey|good\s*(morning|evening|afternoon)|sup|yo|xin\s*chao/i],
             action: () => {
                 const greetings = [
                     "Hey there! Ready to be productive? What would you like to do?",
@@ -226,7 +263,7 @@
             }
         },
         {
-            patterns: [/thank|thanks|thx|cheers/i],
+            patterns: [/thank|thanks|thx|cheers|cam\s*on/i],
             action: () => {
                 const replies = [
                     "You're welcome! Keep up the great work!",
@@ -252,8 +289,152 @@
                 if (status.length === 0) return "No timers are currently running. Ready to start one?";
                 return `Currently active: <strong>${status.join(', ')}</strong>`;
             }
+        },
+        {
+            patterns: [/(?:show|view|xem)\s*(?:leads?|contacts?|khach\s*hang|du\s*lieu)/i, /(?:bao\s*nhieu|how\s*many)\s*(?:leads?|contacts?|khach)/i],
+            action: () => {
+                if (collectedLeads.length === 0) {
+                    return "No leads collected yet. When visitors type 'register' or 'contact', I'll guide them through the info collection flow.";
+                }
+                let summary = `<strong>Collected Leads: ${collectedLeads.length}</strong>\n\n`;
+                const recent = collectedLeads.slice(-5).reverse();
+                recent.forEach((lead, i) => {
+                    summary += `${i + 1}. <strong>${lead.name || 'N/A'}</strong>`;
+                    if (lead.email) summary += ` — ${lead.email}`;
+                    if (lead.phone) summary += ` — ${lead.phone}`;
+                    summary += `\n`;
+                });
+                if (collectedLeads.length > 5) {
+                    summary += `\n...and ${collectedLeads.length - 5} more`;
+                }
+                return summary;
+            }
         }
     ];
+
+    // =============================================
+    // LEAD COLLECTION FLOW
+    // =============================================
+    function startLeadFlow() {
+        leadFlow.active = true;
+        leadFlow.step = 1;
+        leadFlow.data = { name: '', phone: '', email: '', interest: '' };
+    }
+
+    function processLeadStep(text) {
+        const trimmed = text.trim();
+
+        // Allow cancel
+        if (/^(cancel|huy|stop|skip|no|khong)$/i.test(trimmed)) {
+            leadFlow.active = false;
+            leadFlow.step = 0;
+            return "No problem! You can type 'register' anytime if you change your mind.";
+        }
+
+        switch (leadFlow.step) {
+            case 1: // Collecting name
+                leadFlow.data.name = trimmed;
+                leadFlow.step = 2;
+                return `Nice to meet you, <strong>${trimmed}</strong>!\n\nPlease share your <strong>email</strong> or <strong>phone number</strong> so we can reach you:`;
+
+            case 2: // Collecting email/phone
+                // Detect if it's email or phone
+                const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+                const phonePattern = /[\d\s\-+().]{7,}/;
+
+                const emailMatch = trimmed.match(emailPattern);
+                const phoneMatch = trimmed.match(phonePattern);
+
+                if (emailMatch) {
+                    leadFlow.data.email = emailMatch[0];
+                }
+                if (phoneMatch) {
+                    leadFlow.data.phone = phoneMatch[0].replace(/\s/g, '');
+                }
+
+                if (!leadMatch(leadFlow.data)) {
+                    return "Hmm, I couldn't detect an email or phone number. Could you please enter a valid <strong>email</strong> (e.g. name@example.com) or <strong>phone number</strong>?";
+                }
+
+                leadFlow.step = 3;
+                return `Got it! One last question — what are you most interested in?\n\n<strong>1.</strong> Productivity & Focus tools\n<strong>2.</strong> Team time management\n<strong>3.</strong> Pomodoro for studying\n<strong>4.</strong> Just exploring\n\nType a number or describe your interest:`;
+
+            case 3: // Collecting interest
+                const interests = {
+                    '1': 'Productivity & Focus tools',
+                    '2': 'Team time management',
+                    '3': 'Pomodoro for studying',
+                    '4': 'Just exploring'
+                };
+                leadFlow.data.interest = interests[trimmed] || trimmed;
+                leadFlow.active = false;
+                leadFlow.step = 0;
+
+                // Save lead
+                saveLead(leadFlow.data);
+
+                const name = leadFlow.data.name;
+                return `Thank you, <strong>${name}</strong>! Your information has been saved successfully.\n\nHere's a summary:\n- Name: <strong>${leadFlow.data.name}</strong>\n- ${leadFlow.data.email ? 'Email: <strong>' + leadFlow.data.email + '</strong>' : 'Phone: <strong>' + leadFlow.data.phone + '</strong>'}\n- Interest: <strong>${leadFlow.data.interest}</strong>\n\nWe'll get back to you soon! In the meantime, feel free to try all our timer features.`;
+
+            default:
+                leadFlow.active = false;
+                return null;
+        }
+    }
+
+    function leadMatch(data) {
+        return data.email || data.phone;
+    }
+
+    function saveLead(data) {
+        const lead = {
+            ...data,
+            timestamp: new Date().toLocaleString('vi-VN'),
+            source: window.location.href,
+            sessionId: SESSION_ID
+        };
+
+        // Save to localStorage
+        collectedLeads.push(lead);
+        localStorage.setItem('timerPro_leads', JSON.stringify(collectedLeads));
+        console.log('Lead saved locally:', lead);
+
+        // Build chat history text
+        const historyText = chatHistory.map(msg => {
+            return `${msg.role === 'user' ? 'User' : 'Bot'}: ${msg.text}`;
+        }).join('\n\n');
+
+        // Send to Google Sheets
+        sendLeadToGoogleSheets(lead, historyText);
+    }
+
+    async function sendLeadToGoogleSheets(leadData, chatHistoryText) {
+        if (GOOGLE_SCRIPT_URL.includes('YOUR_DEPLOY_ID')) {
+            console.log('Google Sheets URL not configured. Lead saved locally only:', leadData);
+            return;
+        }
+
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: leadData.name || '',
+                    phone: leadData.phone || '',
+                    email: leadData.email || '',
+                    interest: leadData.interest || '',
+                    source: leadData.source || window.location.href,
+                    sessionId: SESSION_ID,
+                    chatHistory: chatHistoryText,
+                    timestamp: leadData.timestamp || new Date().toLocaleString('vi-VN')
+                })
+            });
+            console.log('Lead synced to Google Sheets!');
+        } catch (err) {
+            console.warn('Could not send lead to Google Sheets:', err);
+        }
+    }
 
     // =============================================
     // FALLBACK RESPONSES
@@ -288,16 +469,33 @@
         const trimmed = text.trim();
         if (!trimmed) return null;
 
+        // Track chat history
+        chatHistory.push({ role: 'user', text: trimmed });
+
+        // If in lead collection flow, handle that first
+        if (leadFlow.active) {
+            const response = processLeadStep(trimmed);
+            if (response) {
+                chatHistory.push({ role: 'bot', text: response });
+                return response;
+            }
+        }
+
+        // Normal command processing
         for (const cmd of commands) {
             for (const pattern of cmd.patterns) {
                 const match = trimmed.match(pattern);
                 if (match) {
-                    return cmd.action(match);
+                    const response = cmd.action(match);
+                    chatHistory.push({ role: 'bot', text: response });
+                    return response;
                 }
             }
         }
 
-        return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        const fallback = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        chatHistory.push({ role: 'bot', text: fallback });
+        return fallback;
     }
 
     function addMessage(text, type) {

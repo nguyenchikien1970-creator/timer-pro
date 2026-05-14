@@ -1281,6 +1281,17 @@ body {
     transform: translateY(-1px);
 }
 
+.chat-quick-btn--lead {
+    border-color: rgba(52, 211, 153, 0.3);
+    background: rgba(52, 211, 153, 0.08);
+    color: var(--accent-green);
+}
+
+.chat-quick-btn--lead:hover {
+    background: rgba(52, 211, 153, 0.15);
+    border-color: rgba(52, 211, 153, 0.45);
+}
+
 /* Typing indicator */
 .chat-typing {
     display: flex;
