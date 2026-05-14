@@ -9,7 +9,7 @@
     // GOOGLE SHEETS WEBHOOK (Lead Storage)
     // =============================================
     // IMPORTANT: Replace with your actual Google Apps Script Web App URL
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybx2r--kkjm8CGM5JZ4Mjdjp9u711znW9VqoMEBMcup6BFU4EOvdkBUmoyzkeFTlk/exec';
     const SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     const chatHistory = [];
 
