@@ -277,6 +277,66 @@
         </div>
     </div>
 
+    <!-- Chatbot Widget -->
+    <div class="chatbot-fab" id="chatbot-fab" title="Chat with TimerBot" aria-label="Open chatbot">
+        <svg class="fab-icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <svg class="fab-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        <div class="fab-pulse"></div>
+    </div>
+
+    <div class="chatbot-window" id="chatbot-window">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 8V4H8"/>
+                        <rect x="4" y="8" width="16" height="12" rx="2"/>
+                        <circle cx="9" cy="14" r="1" fill="currentColor"/>
+                        <circle cx="15" cy="14" r="1" fill="currentColor"/>
+                        <path d="M9 18h6"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="chat-bot-name">TimerBot</div>
+                    <div class="chat-bot-status">Online — Ready to help</div>
+                </div>
+            </div>
+            <button class="chat-close-btn" id="chat-close-btn" aria-label="Close chat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg bot">
+                <div class="chat-msg-bubble">
+                    Hey! I'm <strong>TimerBot</strong>. I can help you control your timers and give productivity tips. Try these:
+                </div>
+            </div>
+            <div class="chat-quick-actions" id="chat-quick-actions">
+                <button class="chat-quick-btn" data-msg="Start stopwatch">Start Stopwatch</button>
+                <button class="chat-quick-btn" data-msg="Set countdown 10 minutes">Countdown 10min</button>
+                <button class="chat-quick-btn" data-msg="Start pomodoro">Start Pomodoro</button>
+                <button class="chat-quick-btn" data-msg="Give me a productivity tip">Productivity Tip</button>
+                <button class="chat-quick-btn" data-msg="What can you do?">What can you do?</button>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chat-input" placeholder="Type a command or ask something..." autocomplete="off">
+            <button class="chat-send-btn" id="chat-send-btn" aria-label="Send message">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script src="chatbot.js"></script>
 </body>
 </html>
