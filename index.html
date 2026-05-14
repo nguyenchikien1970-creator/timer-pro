@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer Pro — Stopwatch, Countdown & Pomodoro</title>
+    <meta name="description" content="A premium timer application with Stopwatch, Countdown, and Pomodoro modes. Beautiful dark UI with smooth animations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-bg">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <h1>Timer<span class="logo-accent">Pro</span></h1>
+            </div>
+            <div class="header-actions">
+                <button id="btn-sound-toggle" class="icon-btn" title="Toggle Sound" aria-label="Toggle sound">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                </button>
+                <button id="btn-fullscreen" class="icon-btn" title="Fullscreen" aria-label="Toggle fullscreen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mode Tabs -->
+        <nav class="mode-tabs" role="tablist">
+            <button class="mode-tab active" data-mode="stopwatch" role="tab" aria-selected="true" id="tab-stopwatch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="13" r="8"/>
+                    <path d="M12 9v4l2 2"/>
+                    <path d="M5 3L2 6"/>
+                    <path d="M22 6l-3-3"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                </svg>
+                Stopwatch
+            </button>
+            <button class="mode-tab" data-mode="countdown" role="tab" aria-selected="false" id="tab-countdown">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 2h4"/>
+                    <path d="M12 14v-4"/>
+                    <circle cx="12" cy="14" r="8"/>
+                </svg>
+                Countdown
+            </button>
+            <button class="mode-tab" data-mode="pomodoro" role="tab" aria-selected="false" id="tab-pomodoro">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+                Pomodoro
+            </button>
+            <div class="tab-indicator" id="tab-indicator"></div>
+        </nav>
+
+        <!-- Main Timer Display -->
+        <main class="timer-main">
+            <!-- Stopwatch Panel -->
+            <section class="timer-panel active" id="panel-stopwatch" role="tabpanel" aria-labelledby="tab-stopwatch">
+                <div class="timer-ring-container">
+                    <svg class="timer-ring" viewBox="0 0 280 280">
+                        <circle class="ring-bg" cx="140" cy="140" r="126"/>
+                        <circle class="ring-progress stopwatch-ring" cx="140" cy="140" r="126" id="stopwatch-ring"/>
+                    </svg>
+                    <div class="timer-display">
+                        <div class="time-digits" id="stopwatch-display">
+                            <span class="digit-group" id="sw-hours">00</span>
+                            <span class="digit-sep">:</span>
+                            <span class="digit-group" id="sw-minutes">00</span>
+                            <span class="digit-sep">:</span>
+                            <span class="digit-group" id="sw-seconds">00</span>
+                            <span class="digit-ms" id="sw-ms">.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="timer-controls">
+                    <button class="ctrl-btn ctrl-secondary" id="sw-reset" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        Reset
+                    </button>
+                    <button class="ctrl-btn ctrl-primary" id="sw-start">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Start
+                    </button>
+                    <button class="ctrl-btn ctrl-secondary" id="sw-lap" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                        Lap
+                    </button>
+                </div>
+                <div class="laps-container" id="laps-container">
+                    <div class="laps-header" id="laps-header" style="display:none;">
+                        <span>Lap</span>
+                        <span>Lap Time</span>
+                        <span>Total</span>
+                    </div>
+                    <div class="laps-list" id="laps-list"></div>
+                </div>
+            </section>
+
+            <!-- Countdown Panel -->
+            <section class="timer-panel" id="panel-countdown" role="tabpanel" aria-labelledby="tab-countdown">
+                <div class="countdown-setup" id="countdown-setup">
+                    <div class="preset-chips">
+                        <button class="preset-chip" data-seconds="60">1 min</button>
+                        <button class="preset-chip" data-seconds="180">3 min</button>
+                        <button class="preset-chip" data-seconds="300">5 min</button>
+                        <button class="preset-chip" data-seconds="600">10 min</button>
+                        <button class="preset-chip" data-seconds="900">15 min</button>
+                        <button class="preset-chip" data-seconds="1800">30 min</button>
+                        <button class="preset-chip" data-seconds="3600">1 hr</button>
+                        <button class="preset-chip" data-seconds="7200">2 hr</button>
+                    </div>
+                    <div class="time-input-group">
+                        <div class="time-input-col">
+                            <input type="number" id="cd-hours-input" class="time-input" min="0" max="99" value="0" aria-label="Hours">
+                            <label>Hours</label>
+                        </div>
+                        <span class="time-input-sep">:</span>
+                        <div class="time-input-col">
+                            <input type="number" id="cd-minutes-input" class="time-input" min="0" max="59" value="5" aria-label="Minutes">
+                            <label>Minutes</label>
+                        </div>
+                        <span class="time-input-sep">:</span>
+                        <div class="time-input-col">
+                            <input type="number" id="cd-seconds-input" class="time-input" min="0" max="59" value="0" aria-label="Seconds">
+                            <label>Seconds</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="timer-ring-container" id="countdown-ring-area">
+                    <svg class="timer-ring" viewBox="0 0 280 280">
+                        <circle class="ring-bg" cx="140" cy="140" r="126"/>
+                        <circle class="ring-progress countdown-ring" cx="140" cy="140" r="126" id="countdown-ring"/>
+                    </svg>
+                    <div class="timer-display">
+                        <div class="time-digits" id="countdown-display">
+                            <span class="digit-group" id="cd-hours">00</span>
+                            <span class="digit-sep">:</span>
+                            <span class="digit-group" id="cd-minutes">05</span>
+                            <span class="digit-sep">:</span>
+                            <span class="digit-group" id="cd-seconds">00</span>
+                        </div>
+                        <div class="timer-label" id="cd-label">Ready</div>
+                    </div>
+                </div>
+                <div class="timer-controls">
+                    <button class="ctrl-btn ctrl-secondary" id="cd-reset" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        Reset
+                    </button>
+                    <button class="ctrl-btn ctrl-primary" id="cd-start">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Start
+                    </button>
+                    <button class="ctrl-btn ctrl-secondary" id="cd-add-time">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        +1:00
+                    </button>
+                </div>
+            </section>
+
+            <!-- Pomodoro Panel -->
+            <section class="timer-panel" id="panel-pomodoro" role="tabpanel" aria-labelledby="tab-pomodoro">
+                <div class="pomo-status-bar">
+                    <div class="pomo-dots" id="pomo-dots">
+                        <div class="pomo-dot active" data-index="0"></div>
+                        <div class="pomo-dot" data-index="1"></div>
+                        <div class="pomo-dot" data-index="2"></div>
+                        <div class="pomo-dot" data-index="3"></div>
+                    </div>
+                    <div class="pomo-session-info">
+                        <span id="pomo-session-label">Focus 1/4</span>
+                    </div>
+                </div>
+                <div class="timer-ring-container">
+                    <svg class="timer-ring" viewBox="0 0 280 280">
+                        <circle class="ring-bg" cx="140" cy="140" r="126"/>
+                        <circle class="ring-progress pomodoro-ring" cx="140" cy="140" r="126" id="pomodoro-ring"/>
+                    </svg>
+                    <div class="timer-display">
+                        <div class="time-digits" id="pomodoro-display">
+                            <span class="digit-group" id="pm-minutes">25</span>
+                            <span class="digit-sep">:</span>
+                            <span class="digit-group" id="pm-seconds">00</span>
+                        </div>
+                        <div class="timer-label" id="pomo-phase-label">Focus Time</div>
+                    </div>
+                </div>
+                <div class="timer-controls">
+                    <button class="ctrl-btn ctrl-secondary" id="pm-reset">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        Reset
+                    </button>
+                    <button class="ctrl-btn ctrl-primary" id="pm-start">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Start
+                    </button>
+                    <button class="ctrl-btn ctrl-secondary" id="pm-skip">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/></svg>
+                        Skip
+                    </button>
+                </div>
+                <div class="pomo-settings" id="pomo-settings">
+                    <div class="pomo-setting">
+                        <label>Focus</label>
+                        <div class="pomo-adjust">
+                            <button class="adj-btn" data-target="focus" data-dir="-1">-</button>
+                            <span id="pomo-focus-val">25</span><span class="adj-unit">min</span>
+                            <button class="adj-btn" data-target="focus" data-dir="1">+</button>
+                        </div>
+                    </div>
+                    <div class="pomo-setting">
+                        <label>Short Break</label>
+                        <div class="pomo-adjust">
+                            <button class="adj-btn" data-target="short" data-dir="-1">-</button>
+                            <span id="pomo-short-val">5</span><span class="adj-unit">min</span>
+                            <button class="adj-btn" data-target="short" data-dir="1">+</button>
+                        </div>
+                    </div>
+                    <div class="pomo-setting">
+                        <label>Long Break</label>
+                        <div class="pomo-adjust">
+                            <button class="adj-btn" data-target="long" data-dir="-1">-</button>
+                            <span id="pomo-long-val">15</span><span class="adj-unit">min</span>
+                            <button class="adj-btn" data-target="long" data-dir="1">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="pomo-stats">
+                    <div class="pomo-stat">
+                        <span class="pomo-stat-val" id="pomo-total-focus">0</span>
+                        <span class="pomo-stat-label">Focus min</span>
+                    </div>
+                    <div class="pomo-stat">
+                        <span class="pomo-stat-val" id="pomo-completed">0</span>
+                        <span class="pomo-stat-label">Completed</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Alarm overlay -->
+    <div class="alarm-overlay" id="alarm-overlay">
+        <div class="alarm-modal">
+            <div class="alarm-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+            </div>
+            <h2 id="alarm-title">Time's Up!</h2>
+            <p id="alarm-message">Your countdown has finished.</p>
+            <button class="ctrl-btn ctrl-primary alarm-dismiss" id="alarm-dismiss">Dismiss</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
